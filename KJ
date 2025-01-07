@@ -1,0 +1,97 @@
+local AztechTeam = {}
+
+local player = game.Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local humanoid, character = 1, 1
+
+function AztechTeam.initializeCharacter()
+    character = player.Character or player.CharacterAdded:Wait()
+    humanoid = character:WaitForChild("Humanoid")
+end
+
+AztechTeam.initializeCharacter()
+player.CharacterAdded:Connect(AztechTeam.initializeCharacter) -- Reinitialize on character respawn
+
+function AztechTeam.setToolName(hotbarIndex, moveName)
+    local hotbar = playerGui:FindFirstChild("Hotbar")
+    if hotbar then
+        local backpack = hotbar:FindFirstChild("Backpack")
+        local hotbarFrame = backpack and backpack:FindFirstChild("Hotbar")
+        local baseButton = hotbarFrame and hotbarFrame:FindFirstChild(tostring(hotbarIndex))
+        if baseButton then
+            local toolNameLabel = baseButton:FindFirstChild("Base") and baseButton.Base:FindFirstChild("ToolName")
+            if toolNameLabel then
+                toolNameLabel.Text = moveName
+            end
+        end
+    end
+end
+
+-- Set move names
+AztechTeam.setToolName(1, "Temu Flexworks")
+AztechTeam.setToolName(2, "10 10 10 dropkick")
+AztechTeam.setToolName(3, "swift wifi")
+AztechTeam.setToolName(4, "20 series, counter")
+AztechTeam.setToolName(5, "unravage")
+AztechTeam.setToolName(0, "KJ 20 series")
+
+-- Change speed and settings
+local birdUSuck = {
+    -- M1 replacements
+    [13532562418] = {replacementId = "17325510002", startTime = 0, speed = 1},  -- 1st M1
+    [13532600125] = {replacementId = "17325513870", startTime = 0, speed = 1},  -- 2nd M1
+    [13532604085] = {replacementId = "17325522388", startTime = 0, speed = 1},  -- 3rd M1
+    [13294471966] = {replacementId = "17325537719", startTime = 0, speed = 1},  -- 4th M1
+
+    -- Moves
+    [12272894215] = {replacementId = "77727115892579", startTime = 0, speed = 1}, -- Move 1
+    [12296882427] = {replacementId = "17420452843", startTime = 0, speed = 5},  -- Move 2
+    [12307656616] = {replacementId = "16944265635", startTime = 0, speed = 1},  -- Move 3
+    [12351854556] = {replacementId = "78521642007560", startTime = 0, speed = 1},    -- Move 4
+	[14057231976] = {replacementId = "16945550029", startTime = 0, speed = 1}, -- Move 5
+	[12342141464] = {replacementId = "17140902079", startTime = 0, speed = 1},
+	[14809836765] = {replacementId = "18461540788", startTime = 0, speed = 1},
+	[93546004428904] = {replacementId = "108974035701442", startTime = 0, speed = 1},
+	[13813099821] = {replacementId = "18461540788", startTime = 0, speed = 1},
+	[16310343179] = {replacementId = "18447913645", startTime = 0, speed = 2},
+	[16310419285] = {replacementId = "18447915110", startTime = 0, speed = 2},
+	[12447247483] = {replacementId = "17325254223", startTime = 0, speed = 0.6},
+	[12467789963] = {replacementId = "17141153099", startTime = 0, speed = 0.6},
+    -- moves like downslam etc...
+    [10470104242] = {replacementId = "16431491215", startTime = 0, speed = 1},    -- Downslam
+    [10503381238] = {replacementId = "96865367566704", startTime = 0, speed = 6},  -- Mini Uppercut
+    [10479335397] = {replacementId = "112620365240235", startTime = 0, speed = 1},  -- Front Dash
+}
+
+function AztechTeam.stopAllAnimations()
+    for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
+        track:Stop()
+    end
+end
+
+function AztechTeam.playReplacementAnimation(config)
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://" .. config.replacementId
+    local track = humanoid:LoadAnimation(anim)
+    track:Play()
+    track:AdjustSpeed(0)
+    track.TimePosition = config.startTime
+    track:AdjustSpeed(config.speed)
+end
+
+humanoid.AnimationPlayed:Connect(function(animationTrack)
+    local animId = tonumber(animationTrack.Animation.AnimationId:match("%d+"))
+    local config = birdUSuck[animId]
+    if config then
+        AztechTeam.stopAllAnimations()
+        AztechTeam.playReplacementAnimation(config)
+    end
+end)
+
+character.DescendantAdded:Connect(function(descendant)
+    if descendant:IsA("BodyVelocity") then
+        descendant.Velocity = Vector3.new(descendant.Velocity.X, 0, descendant.Velocity.Z)
+    end
+end)
+
+
